@@ -1,0 +1,142 @@
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# File Upload
+file_path = 'steam_games.csv'
+
+# Read CSV file
+df = pd.read_csv(file_path)
+
+# Display the first few rows of the DataFrame
+print("Upload successful. CSV Preview:")
+print(df.head())
+
+# List all variables
+column_names = df.columns
+
+# Print column names
+print("List of original variables")
+print(column_names)
+
+# Get the number of rows
+num_rows = df.shape[0]
+
+# Print the number of rows
+print(f"Number of rows in the DataFrame: {num_rows}")
+
+# Check for duplicates in the 'AppID' column
+duplicates = df.duplicated(subset='AppID', keep=False)
+
+# Count the number of duplicates
+num_duplicates = duplicates.sum()
+
+# Print the number of duplicates
+print(f"Number of duplicates in 'AppID' column: {num_duplicates}")
+
+# Check for duplicates in the 'name' column
+duplicates = df.duplicated(subset='name', keep=False)
+
+# Count the number of duplicates
+num_duplicates = duplicates.sum()
+
+# Print the number of duplicates
+print(f"Number of duplicates in 'name' column: {num_duplicates}")
+
+# Check for missing values in each row
+rows_with_missing_values = df.isnull().any(axis=1)
+
+# Count the number of rows with missing values
+num_rows_with_missing_values = rows_with_missing_values.sum()
+
+# Print the number of rows with missing values
+print(f"Number of rows containing missing values: {num_rows_with_missing_values}")
+
+# Define the keywords to search for
+keywords = ["playtest", "dedicated server", "test server"]
+
+# Check for the presence of keywords in the 'name' column
+mask = df['name'].str.contains('|'.join(keywords), case=False, na=False)
+
+# Count the number of entries containing the keywords
+num_entries = mask.sum()
+
+# Print the number of entries
+print(f"Number of entries in 'name' column containing specified keywords: {num_entries}")
+
+# Define the columns you wish to keep
+columns_to_keep = ['AppID', 'name', 'price', 'dlc_count', 'metacritic_score', 'positive', 'negative', 'estimated_owners']
+
+# Create a new DataFrame with only the selected columns
+df_selected = df[columns_to_keep]
+
+# Remove duplicates based on 'name' column
+df_selected = df_selected.drop_duplicates(subset='name')
+
+# Remove rows where 'name' contains specified keywords
+df_selected = df_selected[~df_selected['name'].str.contains('|'.join(keywords), case=False, na=False)]
+
+# Print column names of the selected DataFrame
+print("List of kept variables")
+print(df_selected.columns)
+
+# Check and print the number of missing values for each column
+missing_values = df_selected.isnull().sum()
+print("Missing values in each column:")
+print(missing_values)
+
+# Print the total number of rows containing missing values
+num_rows_with_missing_values = df_selected.isnull().any(axis=1).sum()
+print(f"Total number of rows containing missing values: {num_rows_with_missing_values}")
+
+# Drop rows with any missing values
+df_selected = df_selected.dropna()
+
+# Print the number of rows remaining in the DataFrame
+print("Number of rows remaining in the DataFrame:", df_selected.shape[0])
+
+# Print data types of the selected DataFrame
+print(df_selected.dtypes)
+
+################ Visualisation 1 Histogram Price
+
+plt.figure(figsize=(10, 6))
+sns.histplot(df_selected['price'], bins=100, kde=False)
+plt.title('Distribution of Game Prices')
+plt.xlabel('Price ($)')
+plt.ylabel('Number of Games')
+plt.xlim(0, 80) 
+plt.show()
+
+###################  Visualisation 2 Bar Chart DLC
+
+plt.figure(figsize=(10, 6))
+sns.countplot(x='dlc_count', data=df_selected[df_selected['dlc_count'] <= 10])
+plt.title('Number of Games by DLC Count')
+plt.xlabel('Number of DLCs')
+plt.ylabel('Number of Games')
+plt.show()
+
+##################### Visualisation 3 Scatter of Price and DLC
+
+plt.figure(figsize=(10, 6))
+sns.scatterplot(x='price', y='dlc_count', data=df_selected)
+plt.title('DLC Count and Price of Games')
+plt.xlabel('DLC Count')
+plt.ylabel('price (%)')
+plt.xlim(0, 100) 
+plt.show()
+
+####################  Visualisation 4 Box Plots of Price and Estimated Users.
+
+plt.figure(figsize=(12, 8))
+sns.boxplot(x='estimated_owners', y='price', data=df_selected, whis=1.0)
+plt.yscale('log')  # Apply logarithmic scale
+plt.title('Game Prices by Ownership Range')
+plt.xlabel('Estimated Owners')
+plt.ylabel('Price ($)')
+plt.xticks(rotation=45)
+plt.show()
+
+
+    
